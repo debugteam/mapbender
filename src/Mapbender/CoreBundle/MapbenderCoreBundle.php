@@ -3,6 +3,7 @@ namespace Mapbender\CoreBundle;
 
 use Mapbender\CoreBundle\Component\MapbenderBundle;
 use Mapbender\CoreBundle\DependencyInjection\Compiler\ContainerUpdateTimestampPass;
+use Mapbender\CoreBundle\DependencyInjection\Compiler\FixRootAccountVoterDenyPreventionPass;
 use Mapbender\CoreBundle\DependencyInjection\Compiler\MapbenderYamlCompilerPass;
 use Mapbender\CoreBundle\DependencyInjection\Compiler\ProvideBrandingPass;
 use Mapbender\CoreBundle\DependencyInjection\Compiler\ProvideCookieConsentGlobalPass;
@@ -48,6 +49,7 @@ class MapbenderCoreBundle extends MapbenderBundle
         $container->addCompilerPass(new RewriteFormThemeCompilerPass($formThemeOldLocation, $formThemeNewLocation));
         $container->addCompilerPass(new ProvideCookieConsentGlobalPass());
         $container->addCompilerPass(new RebuildElementInventoryPass());
+        $container->addCompilerPass(new FixRootAccountVoterDenyPreventionPass());
     }
 
     /**
