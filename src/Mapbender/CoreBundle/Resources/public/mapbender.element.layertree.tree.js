@@ -660,11 +660,11 @@
                 removeButton.on('click', $.proxy(self._removeSource, self));
 
                 var $opacitySliderWrap = $('#layer-opacity', menu);
-                /**if ($element.parents('li:first').attr('data-type') !== self.consts.root) {
+                if ($element.parents('li:first').attr('data-type') !== self.consts.root) {
                     $opacitySliderWrap.remove();
                     menu.find('#layer-opacity-title').remove();
                     $opacitySliderWrap = [];
-                }*/
+                }
 
                 menu.removeClass('hidden');
 
