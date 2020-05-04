@@ -146,9 +146,6 @@ class Importer extends RefreshableSourceLoader
 
         $this->copyKeywords($target, $reloaded, 'Mapbender\WmsBundle\Entity\WmsSourceKeyword');
 
-        //JH 08.04.20: detach no longer needed entity
-        $this->entityManager->detach($reloaded);
-
         foreach ($target->getInstances() as $instance) {
             $this->updateInstance($instance);
             // @todo reusable source instances: update affected applications without assuming instance => layerset ownership
