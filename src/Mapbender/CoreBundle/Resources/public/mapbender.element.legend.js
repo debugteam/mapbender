@@ -14,6 +14,7 @@
 
         callback:       null,
         mbMap: null,
+        olMap: null,
 
         /**
          * Widget constructor
@@ -37,6 +38,7 @@
          */
         _setup: function(mbMap) {
             this.mbMap = mbMap;
+            this.olMap = this.mbMap.getModel().olMap;
             $(document).one('mbmapsourceloadend', $.proxy(this.onMapLoaded, this));
             this._trigger('ready');
         },
@@ -58,7 +60,14 @@
             $(document)
                 .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
 
-            $(document).bind('mbmapzoomchanged moveend', $.proxy(this.onMapLayerChanges, this));
+            $(document).bind('mbmapzoomchanged', $.proxy(this.onMapLayerChanges, this));
+            //this.olMap.events.register('movestart', this, $.proxy(this.onMapLayerChanges, this));
+            this.olMap.events.register('moveend', this, $.proxy(this.onMapLayerChanges, this));
+        },
+
+        _eventsMap: function(e){
+            console.log("Map Event");
+            console.log(e);
         },
 
         changesRecognized: false,
@@ -77,8 +86,6 @@
          * @param e
          */
         onMapLayerChanges: function(e){
-        console.log("On MapLayerChange");
-        console.log(e);
             this.render();
 
             if (this.popupWindow) {
@@ -124,14 +131,13 @@
 
         _prepareDynamicLegendParameter: function(){
             var model = this.mbMap.getModel();
-            var olMap = model.olMap;
 
             return {
                 'SRS': model.getCurrentProjectionCode(),
                 'CRS': model.getCurrentProjectionCode(),
-                'BBOX': olMap.getExtent().toBBOX(),
-                'WIDHT': olMap.getSize()['w'],
-                'HEIGHT': olMap.getSize()['h']
+                'BBOX': this.olMap.getExtent().toBBOX(),
+                'WIDHT': this.olMap.getSize()['w'],
+                'HEIGHT': this.olMap.getSize()['h']
             };
         },
 
@@ -183,15 +189,25 @@
             this.open(callback);
         },
 
+        render: function() {
+            // debounce
+            if (this._applyTimeout) {
+                clearTimeout(this._applyTimeout);
+            }
+            this._applyTimeout = window.setTimeout(this._renderReal.bind(this), 80);
+        },
+
         /**
          * Render HTML
          *
          * @return strgin HTML jQuery object
          */
-        render: function() {
+        _renderReal: function() {
+            this.timeStart = new Date().getMilliseconds();
             var widget = this;
             var sources = widget._getSources();
 
+            widget.htmlContainer.hide();
             widget.htmlContainer.empty();
             widget.imagesInitialized = false;
             _.each(sources, function(source){
@@ -203,6 +219,9 @@
 
                 widget.htmlContainer.append(html);
             });
+            window.setTimeout(function(){
+                widget.htmlContainer.show();
+            }, 200);
         },
 
         _createLegendNode: function(source){
@@ -252,8 +271,8 @@
         imagesTotal: 0,
         imagesLoaded: 0,
 
-        _initializeImageCounter: function(){
-            this.imagesTotal = $('.legends').find('img').length;
+        _resetImageCounter: function(){
+            this.imagesTotal = 0;
             this.imagesLoaded = 0;
 
             this.imagesInitialized = true;
@@ -262,6 +281,7 @@
         _allImagesLoaded: function(){
             var widget = this;
             var classesToRemove = ['.legend-source', '.legend-node', '.legend-layer'];
+
 
             _.each(classesToRemove, function(classesToRemove){
                 widget._removeImages(classesToRemove);
@@ -273,24 +293,25 @@
                 if($(source).find('img').length <= 0){
                     $(source).remove();
                 }
-            });
+            });this
         },
 
         _createImage: function(src){
             var widget = this;
+
+            if(!widget.imagesInitialized){
+                widget._resetImageCounter();
+            }
+            widget.imagesTotal++;
+
             return $('<img/>')
                 .attr('src', src)
                 .attr('onload', function(){
                     var image = $(this);
                     $(this).load(function() {
-                        if(!widget.imagesInitialized){
-                            widget._initializeImageCounter();
-                        }
-
                         if($(image).height() <= 2){
                             $(image).remove();
                         }
-
                         widget.imagesLoaded++;
 
                         if(widget.imagesLoaded === widget.imagesTotal){
