@@ -290,7 +290,7 @@ class PrintService extends ImageExportService implements PrintServiceInterface
         }
         $this->addCoordinates($pdf, $template, $jobData);
 
-        $legends = $this->legendHandler->collectLegends($jobData);
+        $legends = $this->legendHandler->collectLegendsDynamic($jobData);
         $this->handleMainPageLegends($pdf, $template, $jobData, $legends);
         $this->finishMainPage($pdf, $template, $jobData);
         $this->handleRemainingLegends($pdf, $template, $jobData, $legends);

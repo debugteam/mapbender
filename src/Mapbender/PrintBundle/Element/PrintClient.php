@@ -321,6 +321,9 @@ class PrintClient extends Element
         if (isset($data['legends'])) {
             $data['legends'] = $this->prepareLegends($data['legends']);
         }
+        if(isset($data['legends'])){
+            $data['dynamicLegends'] = $configuration['dynamicLegends'];
+        }
         $data = $data + $this->getUserSpecifics();
         return $data;
     }

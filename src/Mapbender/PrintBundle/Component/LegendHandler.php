@@ -3,6 +3,8 @@
 
 namespace Mapbender\PrintBundle\Component;
 
+use Mapbender\CoreBundle\Utils\ArrayUtil;
+use Mapbender\PrintBundle\Component\Export\Box;
 use Mapbender\PrintBundle\Component\Legend\LegendBlock;
 use Mapbender\PrintBundle\Component\Legend\LegendBlockContainer;
 use Mapbender\PrintBundle\Component\Legend\LegendBlockGroup;
@@ -108,6 +110,82 @@ class LegendHandler
             }
         };
         return $group;
+    }
+
+    public function collectLegendsDynamic($printJobData)
+    {
+        if (empty($printJobData['legends'])) {
+            return array();
+        }
+        $groups = array();
+        foreach ($printJobData['legends'] as $groupData) {
+            $group = $this->collectLegendGroupDynamic($groupData, $printJobData);
+
+            if (count($group->getBlocks())) {
+                $groups[] = $group;
+            }
+        }
+        return $groups;
+    }
+
+    public function collectLegendGroupDynamic($groupData, $printJobData)
+    {
+        $group = new LegendBlockGroup();
+        foreach ($groupData as $key => $data) {
+            if (is_array($data)) {
+                $url = $data['url'];
+                $title = $data['layerName'];
+            } else {
+                $url = $data;
+                $title = $key;
+            }
+            $dynamicLegends = ArrayUtil::getDefault($printJobData, 'dynamicLegends', false);
+            if($dynamicLegends){
+                $dynamicLegendParams = $this->prepareDynamicUrlParams($printJobData, $data['sourceSrs']);
+                $url = $this->createDynamicLegendUrl($url, $dynamicLegendParams);
+            }
+            $block = $this->prepareUrlBlock($title, $url);
+            if ($block && $block->getHeight() > 2) {
+                $group->addBlock($block);
+            }
+        };
+        return $group;
+    }
+
+    private function prepareDynamicUrlParams($printJobData, $srs){
+        $ext = $printJobData['extent'];
+        $cnt = $printJobData['center'];
+        $extentBox = Box::fromCenterAndSize($cnt['x'], $cnt['y'], $ext['width'], $ext['height']);
+
+        $targetBox = new Box(0, $printJobData['height'], $printJobData['width'], 0);
+
+        $rotation = isset($printJobData['rotation']) && intval($printJobData['rotation']);
+
+        $expandedCanvas = $targetBox->getExpandedForRotation($rotation);
+        $expandedCanvas->roundToIntegerBoundaries();
+        $expandedExtent = $extentBox->getExpandedForRotation($rotation);
+        $expandedExtent = $extentBox->getExpandedForRotation($rotation);
+
+        return [
+            "SRS" => $srs,
+            "CRS" => $srs,
+            "BBOX" => $this->getBBoxFromBox($extentBox),
+            "WIDTH" => $expandedCanvas->getAbsWidthAndHeight()['width'],
+            "HEIGHT" => $expandedCanvas->getAbsWidthAndHeight()['height']
+        ];
+    }
+
+    private function createDynamicLegendUrl($url, $urlParams){
+        foreach($urlParams as $key => $value){
+            $url = $url . "&" . $key . "=" . $value;
+        }
+        return $url;
+    }
+
+
+
+    private function getBBoxFromBox($extentBox){
+        return $extentBox->left . "," . $extentBox->bottom . "," . $extentBox->right . "," . $extentBox->top;
     }
 
     /**

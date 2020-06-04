@@ -94,6 +94,10 @@ class PrintClientAdminType extends AbstractType
                 'required' => false,
                 'label' => 'mb.core.admin.printclient.label.legend_default_behaviour',
             ))
+            ->add('dynamicLegends', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType', array(
+                'required' => false,
+                'label' => 'mb.core.admin.legend.label.dynamicLegends',
+            ))
             ->add('optional_fields', 'Mapbender\ManagerBundle\Form\Type\YAMLConfigurationType', array(
                 'required' => false,
             ))

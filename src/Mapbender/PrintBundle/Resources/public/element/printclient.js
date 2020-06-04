@@ -366,6 +366,7 @@
         _collectLegends: function() {
             var legends = [];
             var scale = this._getPrintScale();
+            var projCode = this.map.model.getCurrentProj()['projCode'];
             var sources = this._getRasterSourceDefs();
             for (var i = 0; i < sources.length; ++i) {
                 var source = sources[i];
@@ -395,7 +396,8 @@
                                     url: legendLayer.options.legend.url,
                                     layerName: legendLayer.options.title || '',
                                     parentNames: parentNames,
-                                    sourceName: sourceName
+                                    sourceName: sourceName,
+                                    sourceSrs: projCode
                                 };
                                 // reverse layer order per source
                                 sourceLegendList.unshift(legendInfo);
