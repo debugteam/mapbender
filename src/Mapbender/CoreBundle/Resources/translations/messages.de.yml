@@ -343,6 +343,7 @@ mb:
           showsourcetitle: 'Titel der Datenquelle anzeigen'
           showlayertitle: 'Titel der Ebene anzeigen'
           showgroupedlayertitle: 'Titel der gruppierten Ebene anzeigen'
+          dynamicLegends: 'Dynamische Legenden aktivieren'
       featureinfo:
         label:
           deactivateonclose: 'Beim Schließen deaktivieren'

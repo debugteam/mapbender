@@ -7,7 +7,7 @@ use Mapbender\CoreBundle\Entity;
 
 /**
  * The Legend class shows legends of the map's layers.
- * 
+ *
  * @author Paul Schmidt
  */
 class Legend extends Element implements ConfigMigrationInterface
@@ -60,6 +60,7 @@ class Legend extends Element implements ConfigMigrationInterface
             "showSourceTitle" => true,
             "showLayerTitle" => true,
             "showGroupedLayerTitle" => true,
+            "dynamicLegends" => false
         );
     }
 

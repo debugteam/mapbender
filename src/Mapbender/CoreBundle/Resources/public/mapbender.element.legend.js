@@ -8,7 +8,8 @@
             displayType:              "list",
             showSourceTitle:          true,
             showLayerTitle:           true,
-            showGroupedLayerTitle: true
+            showGroupedLayerTitle: true,
+            dynamicLegends: false
         },
 
         callback:       null,
@@ -55,7 +56,19 @@
             }
 
             $(document)
-                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.onMapLayerChanges, this))
+                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
+
+            $(document).bind('mbmapzoomchanged moveend', $.proxy(this.onMapLayerChanges, this));
+        },
+
+        changesRecognized: false,
+
+        recognizeAnyChanges: function(e){
+            if(!this.changesRecognized && !this.popupWindow) {
+                this.changesRecognized = true;
+            }
+
+            this.onMapLayerChanges(e);
         },
 
         /**
@@ -63,10 +76,10 @@
          *
          * @param e
          */
-        onMapLayerChanges: function(e) {
-            var html = this.render();
-
-            this.htmlContainer.html(html);
+        onMapLayerChanges: function(e){
+        console.log("On MapLayerChange");
+        console.log(e);
+            this.render();
 
             if (this.popupWindow) {
                 this.popupWindow.open(this.element);
@@ -98,9 +111,36 @@
          */
         getLegendUrl: function(layer) {
             if (layer.options.legend) {
-                return layer.options.legend.url || null;
+                var legendUrl = layer.options.legend.url;
+
+                if (this.options.dynamicLegends){
+                    legendUrl = this._appendDynamicLegendUrlParameter(legendUrl, this._prepareDynamicLegendParameter());
+                }
+
+                return legendUrl || null;
             }
             return null;
+        },
+
+        _prepareDynamicLegendParameter: function(){
+            var model = this.mbMap.getModel();
+            var olMap = model.olMap;
+
+            return {
+                'SRS': model.getCurrentProjectionCode(),
+                'CRS': model.getCurrentProjectionCode(),
+                'BBOX': olMap.getExtent().toBBOX(),
+                'WIDHT': olMap.getSize()['w'],
+                'HEIGHT': olMap.getSize()['h']
+            };
+        },
+
+        _appendDynamicLegendUrlParameter: function(legendUrl, params){
+            _.each(params, function(key, value){
+                legendUrl = legendUrl + "&" + key + "=" + value;
+            });
+
+            return legendUrl;
         },
 
         /**
@@ -137,92 +177,6 @@
         },
 
         /**
-         *
-         * @param layer
-         * @private
-         */
-        createSourceTitle: function(layer) {
-            return $("<li/>")
-                .text(layer.title)
-                .addClass('ebene' + layer.level)
-                .addClass('title');
-        },
-
-        /**
-         *
-         * @param layer
-         * @private
-         */
-        createTitle: function(layer) {
-            return $("<div/>")
-                .text(layer.title)
-                .addClass('subTitle')
-            ;
-        },
-        /**
-         * Create Image
-         *
-         * @param layer
-         * @private
-         */
-        createImage: function(layer) {
-            return $('<img/>')
-                .attr('src', layer.legend);
-        },
-
-        /**
-         * Create Legend Container
-         * @param layer
-         */
-        createLegendContainer: function(layer) {
-            return $('<ul/>')
-                .addClass('ebene1')
-            ;
-        },
-        _createSourceHtml: function(sourceData) {
-            var visibleChildLayers = sourceData.children;
-            var ul = this.createLegendContainer(sourceData);
-
-            if (!visibleChildLayers.length) {
-                return null;
-            }
-
-            if (this.options.showSourceTitle) {
-                ul.append(this.createSourceTitle(sourceData));
-            }
-            for (var i = 0; i < visibleChildLayers.length; ++i) {
-                var childLayer = visibleChildLayers[i];
-                ul.append(this._createLayerHtml(childLayer));
-            }
-
-            return ul;
-        },
-        _createLayerHtml: function(layer) {
-            var widget = this;
-            var options = widget.options;
-            var $li = $('<li/>').addClass('ebene' + layer.level);
-
-            if (layer.children.length) {
-                if (this.options.showGroupedLayerTitle) {
-                    $li.append(this.createTitle(layer));
-                }
-                var $ul = $('<ul/>').addClass('ebene' + layer.level);
-                for (var i = 0; i < layer.children.length; ++i) {
-                    $ul.append(this._createLayerHtml(layer.children[i]));
-                }
-                $li.append($ul);
-                return $li;
-            } else if (layer.legend) {
-
-                if (options.showLayerTitle) {
-                    $li.append(widget.createTitle(layer));
-                }
-                $li.append(widget.createImage(layer));
-            }
-            return $li;
-        },
-
-        /**
          * Default action for mapbender element
          */
         defaultAction: function(callback) {
@@ -237,14 +191,128 @@
         render: function() {
             var widget = this;
             var sources = widget._getSources();
-            var html = $('<ul/>');
-            _.each(sources, function(source) {
-                html.append(widget._createSourceHtml(source));
+
+            widget.htmlContainer.empty();
+            widget.imagesInitialized = false;
+            _.each(sources, function(source){
+                var html = widget._createList()
+                    .addClass('legend-source');
+
+                html.append(widget._createListElement().append(widget._createLabel(source.title, 'legend-title')));
+                html.append(widget._createLegendNode(source));
+
+                widget.htmlContainer.append(html);
             });
-            // strip top-level dummy <ul>
-            return $(' > *', html);
         },
 
+        _createLegendNode: function(source){
+            var widget = this;
+
+            var nodeHtml = widget._createListElement();
+
+            _.each(source.children, function(childSource){
+                var nodeHtmlListElement = widget._createList();
+                nodeHtmlListElement.attr('legend-parent', source.id);
+
+                if(!childSource.legend && childSource.children.length > 0){
+                    nodeHtmlListElement.addClass('legend-node');
+                    nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-nodeTitle')));
+
+                    nodeHtmlListElement.append(widget._createLegendNode(childSource));
+                }else if(childSource.legend){
+                    nodeHtmlListElement.addClass('legend-layer');
+                    nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-layerTitle')));
+
+                    nodeHtmlListElement.append(widget._createListElement().append(widget._createImage(childSource.legend)));
+
+                    var layerSeparator = widget._createSeparator();
+                    nodeHtmlListElement.append(layerSeparator);
+                }
+                nodeHtml.append(nodeHtmlListElement);
+            });
+
+            return nodeHtml;
+        },
+
+        _createList: function(){
+            return $('<ul/>');
+        },
+
+        _createListElement: function(){
+            return $('<li/>');
+        },
+
+        _createLabel: function(content, cssClass){
+            return $('<label/>')
+                .addClass(cssClass)
+                .append(content);
+        },
+
+        imagesInitialized: false,
+        imagesTotal: 0,
+        imagesLoaded: 0,
+
+        _initializeImageCounter: function(){
+            this.imagesTotal = $('.legends').find('img').length;
+            this.imagesLoaded = 0;
+
+            this.imagesInitialized = true;
+        },
+
+        _allImagesLoaded: function(){
+            var widget = this;
+            var classesToRemove = ['.legend-source', '.legend-node', '.legend-layer'];
+
+            _.each(classesToRemove, function(classesToRemove){
+                widget._removeImages(classesToRemove);
+            });
+        },
+
+        _removeImages: function(classToSearchForImages){
+            _.each($(classToSearchForImages), function(source){
+                if($(source).find('img').length <= 0){
+                    $(source).remove();
+                }
+            });
+        },
+
+        _createImage: function(src){
+            var widget = this;
+            return $('<img/>')
+                .attr('src', src)
+                .attr('onload', function(){
+                    var image = $(this);
+                    $(this).load(function() {
+                        if(!widget.imagesInitialized){
+                            widget._initializeImageCounter();
+                        }
+
+                        if($(image).height() <= 2){
+                            $(image).remove();
+                        }
+
+                        widget.imagesLoaded++;
+
+                        if(widget.imagesLoaded === widget.imagesTotal){
+                            widget._allImagesLoaded();
+                        }
+                    });
+                });
+        },
+
+        _createSeparator: function(){
+            return $('<span/>').addClass('legend-separator');
+        },
+
+        /**
+         *   var layerData = {
+                id:       layer.options.id,
+                title:    layer.options.title,
+                level:    level,
+                legend: this.getLegendUrl(layer),
+                children: []
+            };
+         */
         /**
          * On open handler
          */

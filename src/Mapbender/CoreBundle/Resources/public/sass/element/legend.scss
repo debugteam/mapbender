@@ -1,3 +1,42 @@
-.mb-element-legend img {
-  max-width: 100%;
+.mb-element-legend {
+    img {
+        max-width: 100%;
+    }
+
+    .legend-source {
+        margin-bottom: 20px;
+    }
+
+    .legend-title {
+        display: block;
+        border-bottom: solid 1px black;
+        width: 100%;
+        font-weight: bold;
+        font-size: 1.35em;
+    }
+
+    .legend-nodeTitle {
+        display: block;
+        margin: 5px 0 0 0;
+        width: 100%;
+        font-size: 1.2em;
+    }
+
+    .legend-layerTitle {
+        display: block;
+        margin: 5px 0 10px 0;
+        width: 100%;
+        font-weight: bold;
+        font-size: 1.2em;
+        color: #FFF;
+        padding: 2px;
+        background-color: rgba(155,155,155,0.8);
+    }
+
+    .legend-separator {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: rgba(155,155,155,0.8);
+    }
 }
