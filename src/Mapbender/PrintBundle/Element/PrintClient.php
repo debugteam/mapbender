@@ -322,7 +322,7 @@ class PrintClient extends Element
             $data['legends'] = $this->prepareLegends($data['legends']);
         }
         if(isset($data['legends'])){
-            $data['dynamicLegends'] = $configuration['dynamicLegends'];
+            $data['dynamicLegends'] = isset($configuration['dynamicLegends']) ? $configuration['dynamicLegends'] : 0;
         }
         $data = $data + $this->getUserSpecifics();
         return $data;
