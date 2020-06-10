@@ -136,13 +136,13 @@
                 'SRS': model.getCurrentProjectionCode(),
                 'CRS': model.getCurrentProjectionCode(),
                 'BBOX': this.olMap.getExtent().toBBOX(),
-                'WIDHT': this.olMap.getSize()['w'],
+                'WIDTH': this.olMap.getSize()['w'],
                 'HEIGHT': this.olMap.getSize()['h']
             };
         },
 
         _appendDynamicLegendUrlParameter: function(legendUrl, params){
-            _.each(params, function(key, value){
+            $.each(params, function(key, value){
                 legendUrl = legendUrl + "&" + key + "=" + value;
             });
 
