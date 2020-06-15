@@ -65,11 +65,6 @@
             this.olMap.events.register('moveend', this, $.proxy(this.onMapLayerChanges, this));
         },
 
-        _eventsMap: function(e){
-            console.log("Map Event");
-            console.log(e);
-        },
-
         changesRecognized: false,
 
         recognizeAnyChanges: function(e){
