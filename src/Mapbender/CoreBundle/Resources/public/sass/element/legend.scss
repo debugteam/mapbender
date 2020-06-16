@@ -39,4 +39,23 @@
         height: 2px;
         background-color: rgba(155,155,155,0.8);
     }
+
+    .legends-loader-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .legends-loader {
+        border: 6px solid #f3f3f3; /* Light grey */
+        border-top: 6px solid #d10a10; /* Blue */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 }

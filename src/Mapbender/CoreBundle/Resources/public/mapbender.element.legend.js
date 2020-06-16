@@ -22,12 +22,13 @@
          * @private
          */
         _create: function() {
-            this.htmlContainer = $('> .legends', this.element);
-            var self = this;
+            var widget = this;
+
+            widget.htmlContainer = $('> .legends', widget.element);
             Mapbender.elementRegistry.waitReady(this.options.target).then(function(mbMap) {
-                self._setup(mbMap);
+                widget._setup(mbMap);
             }, function() {
-                Mapbender.checkTarget("mbLegend", self.options.target);
+                Mapbender.checkTarget("mbLegend", widget.options.target);
             });
         },
 
@@ -39,8 +40,21 @@
         _setup: function(mbMap) {
             this.mbMap = mbMap;
             this.olMap = this.mbMap.getModel().olMap;
+
+            this._initLoadScreen();
+
             $(document).one('mbmapsourceloadend', $.proxy(this.onMapLoaded, this));
             this._trigger('ready');
+        },
+
+        _initLoadScreen: function(){
+            this.loaderContainer = $('<div/>')
+                .addClass('legends-loader-container');
+
+            var loader = $('<div/>')
+                .addClass('legends-loader');
+            this.loaderContainer.append(loader);
+            this.element.append(this.loaderContainer);
         },
 
         /**
@@ -201,6 +215,8 @@
             var widget = this;
             var sources = widget._getSources();
 
+            widget.htmlContainer.hide();
+            widget.loaderContainer.show();
             widget.htmlContainer.empty();
             widget.imagesInitialized = false;
             _.each(sources, function(source){
@@ -282,6 +298,9 @@
             _.each(classesToRemove, function(classesToRemove){
                 widget._removeImages(classesToRemove);
             });
+
+            widget.loaderContainer.hide();
+            widget.htmlContainer.show();
         },
 
         _removeImages: function(classToSearchForImages){
@@ -302,7 +321,7 @@
 
             var image = new Image();
             image.onload = function(){
-                if($(this).height() <= 2){
+                if(this.naturalHeight <= 2){
                     $(this).remove();
                 }
 
