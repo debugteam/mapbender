@@ -49,7 +49,7 @@
          * @param e
          */
         onMapLoaded: function(e) {
-            this.onMapLayerChanges();
+            this.recognizeAnyChanges();
 
             if (this.options.elementType === 'dialog') {
                 if (this.options.autoOpen) {
@@ -60,16 +60,17 @@
             $(document)
                 .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
 
-            $(document).bind('mbmapzoomchanged', $.proxy(this.onMapLayerChanges, this));
+            $(document).bind('mbmapzoomchanged', $.proxy(this.recognizeAnyChanges, this));
             //this.olMap.events.register('movestart', this, $.proxy(this.onMapLayerChanges, this));
-            this.olMap.events.register('moveend', this, $.proxy(this.onMapLayerChanges, this));
+            this.olMap.events.register('moveend', this, $.proxy(this.recognizeAnyChanges, this));
         },
 
         changesRecognized: false,
 
         recognizeAnyChanges: function(e){
-            if(!this.changesRecognized && !this.popupWindow) {
+            if(!this.popupWindow) {
                 this.changesRecognized = true;
+                return;
             }
 
             this.onMapLayerChanges(e);
@@ -81,6 +82,7 @@
          * @param e
          */
         onMapLayerChanges: function(e){
+            this.changesRecognized = false;
             this.render();
 
             if (this.popupWindow) {
@@ -198,11 +200,9 @@
          * @return strgin HTML jQuery object
          */
         _renderReal: function() {
-            this.timeStart = new Date().getMilliseconds();
             var widget = this;
             var sources = widget._getSources();
 
-            widget.htmlContainer.hide();
             widget.htmlContainer.empty();
             widget.imagesInitialized = false;
             _.each(sources, function(source){
@@ -214,9 +214,6 @@
 
                 widget.htmlContainer.append(html);
             });
-            window.setTimeout(function(){
-                widget.htmlContainer.show();
-            }, 200);
         },
 
         _createLegendNode: function(source){
@@ -288,7 +285,7 @@
                 if($(source).find('img').length <= 0){
                     $(source).remove();
                 }
-            });this
+            });
         },
 
         _createImage: function(src){
@@ -299,36 +296,27 @@
             }
             widget.imagesTotal++;
 
-            return $('<img/>')
-                .attr('src', src)
-                .attr('onload', function(){
-                    var image = $(this);
-                    $(this).load(function() {
-                        if($(image).height() <= 2){
-                            $(image).remove();
-                        }
-                        widget.imagesLoaded++;
+            var image = new Image();
+            image.onload = function(){
+                if($(this).height() <= 2){
+                    $(this).remove();
+                }
 
-                        if(widget.imagesLoaded === widget.imagesTotal){
-                            widget._allImagesLoaded();
-                        }
-                    });
-                });
+                widget.imagesLoaded++;
+
+                if(widget.imagesLoaded === widget.imagesTotal){
+                    widget._allImagesLoaded();
+                }
+            };
+            image.src = src;
+
+            return image;
         },
 
         _createSeparator: function(){
             return $('<span/>').addClass('legend-separator');
         },
 
-        /**
-         *   var layerData = {
-                id:       layer.options.id,
-                title:    layer.options.title,
-                level:    level,
-                legend: this.getLegendUrl(layer),
-                children: []
-            };
-         */
         /**
          * On open handler
          */
@@ -341,6 +329,10 @@
                     this.popupWindow.$element.on('close', $.proxy(this.close, this));
                 } else {
                     this.popupWindow.open();
+                }
+
+                if(this.changesRecognized){
+                    this.onMapLayerChanges();
                 }
             }
         },
