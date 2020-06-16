@@ -60,9 +60,11 @@
             $(document)
                 .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
 
-            $(document).bind('mbmapzoomchanged', $.proxy(this.recognizeAnyChanges, this));
-            //this.olMap.events.register('movestart', this, $.proxy(this.onMapLayerChanges, this));
-            this.olMap.events.register('moveend', this, $.proxy(this.recognizeAnyChanges, this));
+            if (this.options.dynamicLegends) {
+                $(document).bind('mbmapzoomchanged', $.proxy(this.recognizeAnyChanges, this));
+                //this.olMap.events.register('movestart', this, $.proxy(this.onMapLayerChanges, this));
+                this.olMap.events.register('moveend', this, $.proxy(this.recognizeAnyChanges, this));
+            }
         },
 
         changesRecognized: false,
