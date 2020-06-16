@@ -86,10 +86,6 @@
         onMapLayerChanges: function(e){
             this.changesRecognized = false;
             this.render();
-
-            if (this.popupWindow) {
-                this.popupWindow.open(this.element);
-            }
         },
 
         /**
