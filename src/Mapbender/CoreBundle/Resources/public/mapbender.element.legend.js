@@ -209,7 +209,9 @@
                 var html = widget._createList()
                     .addClass('legend-source');
 
-                html.append(widget._createListElement().append(widget._createLabel(source.title, 'legend-title')));
+                if(widget.options.showSourceTitle) {
+                    html.append(widget._createListElement().append(widget._createLabel(source.title, 'legend-title')));
+                }
                 html.append(widget._createLegendNode(source));
 
                 widget.htmlContainer.append(html);
@@ -227,12 +229,16 @@
 
                 if(!childSource.legend && childSource.children.length > 0){
                     nodeHtmlListElement.addClass('legend-node');
-                    nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-nodeTitle')));
+                    if(widget.options.showGroupedLayerTitle) {
+                        nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-nodeTitle')));
+                    }
 
                     nodeHtmlListElement.append(widget._createLegendNode(childSource));
                 }else if(childSource.legend){
                     nodeHtmlListElement.addClass('legend-layer');
-                    nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-layerTitle')));
+                    if(widget.options.showLayerTitle) {
+                        nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-layerTitle')));
+                    }
 
                     nodeHtmlListElement.append(widget._createListElement().append(widget._createImage(childSource.legend)));
 

@@ -194,7 +194,8 @@ window.Mapbender.Model = $.extend(Mapbender && Mapbender.Model || {}, {
             layers: [baseLayer],
             theme: null,
             // tile manager breaks tile WMS layers going out of scale as intended
-            tileManager: null
+            tileManager: null,
+            center: new OpenLayers.LonLat(0,0)
         };
         if (this.mbMap.options.scales) {
             $.extend(mapOptions, {
