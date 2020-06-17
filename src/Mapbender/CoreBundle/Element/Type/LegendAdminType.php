@@ -54,13 +54,13 @@ class LegendAdminType extends AbstractType
                 'required' => false,
                 'label' => 'mb.core.admin.legend.label.showsourcetitle',
             ))
-            ->add('showLayerTitle', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType', array(
-                'required' => false,
-                'label' => 'mb.core.admin.legend.label.showlayertitle',
-            ))
             ->add('showGroupedLayerTitle', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType', array(
                 'required' => false,
                 'label' => 'mb.core.admin.legend.label.showgroupedlayertitle',
+            ))
+            ->add('showLayerTitle', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType', array(
+                'required' => false,
+                'label' => 'mb.core.admin.legend.label.showlayertitle',
             ))
             ->add('dynamicLegends', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType', array(
                 'required' => false,
