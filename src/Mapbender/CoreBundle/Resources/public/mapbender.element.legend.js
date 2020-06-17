@@ -228,6 +228,9 @@
                 }
                 html.append(widget._createLegendNode(source));
 
+                var layerSeparator = widget._createSeparator();
+                html.append(layerSeparator);
+
                 widget.htmlContainer.append(html);
             });
         },
@@ -243,8 +246,14 @@
 
                 if(!childSource.legend && childSource.children.length > 0){
                     nodeHtmlListElement.addClass('legend-node');
+                    var nodeLabel;
                     if(widget.options.showGroupedLayerTitle) {
-                        nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-nodeTitle')));
+                        nodeLabel = widget._createLabel(childSource.title, 'legend-nodeTitle');
+                        nodeHtmlListElement.append(widget._createListElement().append(nodeLabel));
+                        
+                        if(!widget.options.showLayerTitle){
+                            nodeLabel.addClass('legend-layerTitle');
+                        }
                     }
 
                     nodeHtmlListElement.append(widget._createLegendNode(childSource));
@@ -255,9 +264,6 @@
                     }
 
                     nodeHtmlListElement.append(widget._createListElement().append(widget._createImage(childSource.legend)));
-
-                    var layerSeparator = widget._createSeparator();
-                    nodeHtmlListElement.append(layerSeparator);
                 }
                 nodeHtml.append(nodeHtmlListElement);
             });
