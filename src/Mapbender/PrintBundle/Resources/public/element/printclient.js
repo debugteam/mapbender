@@ -198,7 +198,7 @@
 
             select.val(selectValue).trigger('change');
         },
-        _getPrintBounds: function(centerX, centerY, scale) {
+        _getPrintMeasurements: function(centerX, centerY, scale){
             // adjust for geodesic pixel aspect ratio so
             // a) our print region selection rectangle appears with ~the same visual aspect ratio as
             //    the main map region in the template, for any projection
@@ -209,10 +209,29 @@
             var pixelAspectRatio = kmPerPixel.w / kmPerPixel.h;
             var pixelWidth = this.width * scale * pixelAspectRatio / (kmPerPixel.w * 1000);
 
-            var pxBottomLeft = centerPixel.add(-0.5 * pixelWidth, -0.5 * pixelHeight);
-            var pxTopRight = centerPixel.add(0.5 * pixelWidth, 0.5 * pixelHeight);
+            return {
+                centerPixel: centerPixel,
+                pixelHeight: pixelHeight,
+                pixelWidth: pixelWidth
+            };
+        },
+        _getPrintBounds: function(centerX, centerY, scale) {
+            var measurements = this._getPrintMeasurements(centerX, centerY, scale);
+
+            return this._getPrintBoundsByPrintMeasurements(measurements);
+        },
+        _getPrintBoundsByPrintMeasurements: function(measurements){
+            console.log("printBounds");
+            console.log(measurements);
+            var centerPixel = measurements.centerPixel;
+            var pixelHeight = measurements.pixelHeight;
+            var pixelWidth = measurements.pixelWidth;
+
+            var pxBottomLeft = centerPixel.add(-0.5 * pixelWidth, 0.5 * pixelHeight);
+            var pxTopRight = centerPixel.add(0.5 * pixelWidth, -0.5 * pixelHeight);
             var llBottomLeft = this.map.map.olMap.getLonLatFromPixel(pxBottomLeft);
             var llTopRight = this.map.map.olMap.getLonLatFromPixel(pxTopRight);
+
             var x0 = llBottomLeft.lon, x1 = llTopRight.lon, y0 = llBottomLeft.lat, y1 = llTopRight.lat;
             return new OpenLayers.Bounds.fromArray([x0, y0, x1, y1]);
         },
@@ -220,7 +239,17 @@
             var featureCenter = this.feature.geometry.getBounds().getCenterLonLat();
             return this._getPrintBounds(featureCenter.lon, featureCenter.lat, scale);
         },
+        _printBoundsAndMeasurementsFromFeature: function(feature, scale){
+            var featureCenter = this.feature.geometry.getBounds().getCenterLonLat();
+            var measurements = this._getPrintMeasurements(featureCenter.lon, featureCenter.lat, scale);
 
+            var printBounds = this._getPrintBoundsByPrintMeasurements(measurements);
+
+            return {
+                printMeasurements: measurements,
+                printBounds: printBounds
+            };
+        },
         _updateGeometry: function(reset) {
             var scale = this._getPrintScale(),
                 rotationField = $('input[name="rotation"]', this.$form);
@@ -340,6 +369,21 @@
         _getPrintScale: function() {
             return $('select[name="scale_select"]', this.$form).val();
         },
+        _getPrintScaleAsInt: function(){
+            var scale = parseInt(this._getPrintScale());
+            if (!scale) {
+                throw new Error("Invalid scale " + scale.toString());
+            }
+
+            return scale;
+        },
+        _getSelectedFeature: function(){
+            if (!this.feature) {
+                throw new Error("No current selection");
+            }
+
+            return this.feature;
+        } ,
         /**
          * Alias to hook into imgExport base class raster layer processing
          * @returns {*}
@@ -349,14 +393,10 @@
             return this._getPrintScale();
         },
         _getExportExtent: function() {
-            var scale = parseInt(this._getPrintScale());
-            if (!scale) {
-                throw new Error("Invalid scale " + scale.toString());
-            }
-            if (!this.feature) {
-                throw new Error("No current selection");
-            }
-            return this._printBoundsFromFeature(this.feature, scale);
+            return this._printBoundsFromFeature(this._getSelectedFeature(), this._getPrintScaleAsInt());
+        },
+        _getExportExtentAndMeasurements: function(){
+            return this._printBoundsAndMeasurementsFromFeature(this._getSelectedFeature(), this._getPrintScaleAsInt());
         },
         /**
          *
@@ -367,13 +407,14 @@
             var legends = [];
             var scale = this._getPrintScale();
             var projCode = this.map.model.getCurrentProj()['projCode'];
+            var extentAndMeasurements = this._getExportExtentAndMeasurements();
             var sources = this._getRasterSourceDefs();
             for (var i = 0; i < sources.length; ++i) {
                 var source = sources[i];
                 var rootLayer = source.configuration.children[0];
                 var sourceName = source.configuration.title || (rootLayer && rootLayer.options.title) || '';
                 var gsHandler = this.map.model.getGeoSourceHandler(source);
-                var leafInfo = gsHandler.getExtendedLeafInfo(source, scale, this._getExportExtent());
+                var leafInfo = gsHandler.getExtendedLeafInfo(source, scale, extentAndMeasurements.printBounds);
                 var sourceLegendList = [];
                 _.forEach(leafInfo, function(activeLeaf) {
                     if (activeLeaf.state.visibility) {
@@ -397,7 +438,11 @@
                                     layerName: legendLayer.options.title || '',
                                     parentNames: parentNames,
                                     sourceName: sourceName,
-                                    sourceSrs: projCode
+                                    dynamicParams: {
+                                        sourceSrs: projCode,
+                                        printExtent: extentAndMeasurements.printBounds,
+                                        printMeasurements: extentAndMeasurements.printMeasurements
+                                    }
                                 };
                                 // reverse layer order per source
                                 sourceLegendList.unshift(legendInfo);

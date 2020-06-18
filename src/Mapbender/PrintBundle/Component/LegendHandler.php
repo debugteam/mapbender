@@ -141,7 +141,7 @@ class LegendHandler
             }
             $dynamicLegends = ArrayUtil::getDefault($printJobData, 'dynamicLegends', false);
             if($dynamicLegends){
-                $dynamicLegendParams = $this->prepareDynamicUrlParams($printJobData, $data['sourceSrs']);
+                $dynamicLegendParams = $this->prepareDynamicUrlParams($printJobData, $data['dynamicParams']);
                 $url = $this->createDynamicLegendUrl($url, $dynamicLegendParams);
             }
             $block = $this->prepareUrlBlock($title, $url);
@@ -152,26 +152,15 @@ class LegendHandler
         return $group;
     }
 
-    private function prepareDynamicUrlParams($printJobData, $srs){
-        $ext = $printJobData['extent'];
-        $cnt = $printJobData['center'];
-        $extentBox = Box::fromCenterAndSize($cnt['x'], $cnt['y'], $ext['width'], $ext['height']);
-
-        $targetBox = new Box(0, $printJobData['height'], $printJobData['width'], 0);
-
-        $rotation = isset($printJobData['rotation']) && intval($printJobData['rotation']);
-
-        $expandedCanvas = $targetBox->getExpandedForRotation($rotation);
-        $expandedCanvas->roundToIntegerBoundaries();
-        $expandedExtent = $extentBox->getExpandedForRotation($rotation);
-        $expandedExtent = $extentBox->getExpandedForRotation($rotation);
-
+    private function prepareDynamicUrlParams($printJobData, $dynamicParams){
+        $srs = $dynamicParams['sourceSrs'];
+        $measurements = $dynamicParams['printMeasurements'];
         return [
             "SRS" => $srs,
             "CRS" => $srs,
-            "BBOX" => $this->getBBoxFromBox($extentBox),
-            "WIDTH" => $expandedCanvas->getAbsWidthAndHeight()['width'],
-            "HEIGHT" => $expandedCanvas->getAbsWidthAndHeight()['height']
+            "BBOX" => $this->getBBoxFromBox($dynamicParams['printExtent']),
+            "WIDTH" => round($measurements['pixelWidth']),
+            "HEIGHT" => round($measurements['pixelHeight'])
         ];
     }
 
@@ -185,7 +174,7 @@ class LegendHandler
 
 
     private function getBBoxFromBox($extentBox){
-        return $extentBox->left . "," . $extentBox->bottom . "," . $extentBox->right . "," . $extentBox->top;
+        return $extentBox['left'] . "," . $extentBox['bottom'] . "," . $extentBox['right'] . "," . $extentBox['top'];
     }
 
     /**
