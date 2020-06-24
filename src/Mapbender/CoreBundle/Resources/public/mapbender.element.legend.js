@@ -249,11 +249,8 @@
                     var nodeLabel;
                     if(widget.options.showGroupedLayerTitle) {
                         nodeLabel = widget._createLabel(childSource.title, 'legend-nodeTitle');
+                        nodeLabel.addClass('legend-layerTitle');
                         nodeHtmlListElement.append(widget._createListElement().append(nodeLabel));
-                        
-                        if(!widget.options.showLayerTitle){
-                            nodeLabel.addClass('legend-layerTitle');
-                        }
                     }
 
                     nodeHtmlListElement.append(widget._createLegendNode(childSource));
