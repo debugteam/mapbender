@@ -245,7 +245,7 @@
             var placeholder = widget._createList()
                 .addClass('legend-source');
 
-            placeholder.append(widget._createListElement().append(widget._createLabel("Keine Legenden verfügbar!", 'legend-nothing')));
+            placeholder.append(widget._createListElement().append(widget._createLabel(Mapbender.trans('mb.core.legend.nolegend'), 'legend-nothing')));
 
             return placeholder;
         },
@@ -351,7 +351,7 @@
             };
             image.onerror = function(){
                 $(this).remove();
-                
+
                 widget.imagesLoaded++;
 
                 if(widget.imagesLoaded === widget.imagesTotal){
