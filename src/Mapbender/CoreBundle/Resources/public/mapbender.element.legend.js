@@ -236,9 +236,7 @@
             });
 
             if(widget.imagesTotal <= 0 || sources.length === 0){
-                widget.htmlContainer.append(widget._createPlaceholder());
-                widget.loaderContainer.hide();
-                widget.htmlContainer.show();
+                widget._allImagesLoaded();
             }
         },
 
@@ -352,7 +350,13 @@
                 }
             };
             image.onerror = function(){
+                $(this).remove();
+                
                 widget.imagesLoaded++;
+
+                if(widget.imagesLoaded === widget.imagesTotal){
+                    widget._allImagesLoaded();
+                }
             };
             image.src = src;
 
