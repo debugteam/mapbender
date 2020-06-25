@@ -53,6 +53,13 @@
         animation: spin 2s linear infinite;
     }
 
+    .legend-nothing {
+        display: block;
+        width: 100%;
+        font-weight: bold;
+        font-size: 1.35em;
+    }
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }

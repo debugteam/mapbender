@@ -219,6 +219,7 @@
             widget.loaderContainer.show();
             widget.htmlContainer.empty();
             widget.imagesInitialized = false;
+            widget._resetImageCounter();
             _.each(sources, function(source){
                 var html = widget._createList()
                     .addClass('legend-source');
@@ -233,6 +234,22 @@
 
                 widget.htmlContainer.append(html);
             });
+
+            if(widget.imagesTotal <= 0 || sources.length === 0){
+                widget.htmlContainer.append(widget._createPlaceholder());
+                widget.loaderContainer.hide();
+                widget.htmlContainer.show();
+            }
+        },
+
+        _createPlaceholder: function(){
+            var widget = this;
+            var placeholder = widget._createList()
+                .addClass('legend-source');
+
+            placeholder.append(widget._createListElement().append(widget._createLabel("Keine Legenden verfügbar!", 'legend-nothing')));
+
+            return placeholder;
         },
 
         _createLegendNode: function(source){
@@ -302,6 +319,10 @@
                 widget._removeImages(classesToRemove);
             });
 
+            if($('.legend-source').size() <= 0){
+                widget.htmlContainer.append(widget._createPlaceholder());
+            }
+
             widget.loaderContainer.hide();
             widget.htmlContainer.show();
         },
@@ -316,10 +337,6 @@
 
         _createImage: function(src){
             var widget = this;
-
-            if(!widget.imagesInitialized){
-                widget._resetImageCounter();
-            }
             widget.imagesTotal++;
 
             var image = new Image();
@@ -333,6 +350,9 @@
                 if(widget.imagesLoaded === widget.imagesTotal){
                     widget._allImagesLoaded();
                 }
+            };
+            image.onerror = function(){
+                widget.imagesLoaded++;
             };
             image.src = src;
 
