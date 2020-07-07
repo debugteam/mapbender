@@ -15,6 +15,7 @@
         callback:       null,
         mbMap: null,
         olMap: null,
+        dynamicLegendsMapping: null,
 
         /**
          * Widget constructor
@@ -40,6 +41,9 @@
         _setup: function(mbMap) {
             this.mbMap = mbMap;
             this.olMap = this.mbMap.getModel().olMap;
+
+            this.dynamicLegendsMapping = this.options['dynamic-legends']['mapping'];
+            console.log(this.dynamicLegendsMapping);
 
             this._initLoadScreen();
 
@@ -129,6 +133,10 @@
             if (layer.options.legend) {
                 var legendUrl = layer.options.legend.url;
 
+                if(legendUrl.includes("/mapproxy/")){
+                    legendUrl = this._rewriteHostUrl(legendUrl);
+                }
+
                 if (this.options.dynamicLegends){
                     legendUrl = this._appendDynamicLegendUrlParameter(legendUrl, this._prepareDynamicLegendParameter());
                 }
@@ -136,6 +144,52 @@
                 return legendUrl || null;
             }
             return null;
+        },
+
+        _rewriteHostUrl: function(url){
+            var parts = this._parseURL(url);
+
+            // Dienst ermitteln
+            var mapproxyService = parts.pathname.split('/')[2];
+            var mappedService = this.dynamicLegendsMapping[mapproxyService];
+            if(!mappedService){
+                return url;
+            }
+            var mappedLayer = mappedService[parts['searchObject']['layer']];
+            parts['pathname'] = mappedLayer.url;
+            parts['searchObject']['layer'] = mappedLayer.layerName;
+
+            return this._buildURL(parts);
+        },
+
+        _parseURL: function(url) {
+            var parsedUrl = new URL(url);
+
+            var searchObject = {},
+                queries, split, i;
+            // Let the browser do the work
+            queries = decodeURIComponent(parsedUrl.search.replace(/^\?/, '')).split('&');
+            for( i = 0; i < queries.length; i++ ) {
+                split = queries[i].split('=');
+                searchObject[split[0]] = split[1];
+            }
+
+            return {
+                protocol: parsedUrl.protocol,
+                host: parsedUrl.host,
+                hostname: parsedUrl.hostname,
+                port: parsedUrl.port,
+                pathname: parsedUrl.pathname,
+                search: parsedUrl.search,
+                searchObject: searchObject,
+                hash: parsedUrl.hash
+            };
+        },
+
+        _buildURL: function(parts){
+            var url = parts['protocol'] + '//' + parts['host'] + parts['pathname'];
+
+            return this._appendDynamicLegendUrlParameter(url, parts['searchObject']);
         },
 
         _prepareDynamicLegendParameter: function(){
@@ -151,11 +205,13 @@
         },
 
         _appendDynamicLegendUrlParameter: function(legendUrl, params){
+            var url  = new URL(legendUrl);
+
             $.each(params, function(key, value){
-                legendUrl = legendUrl + "&" + key + "=" + value;
+                url.searchParams.append(key, value);
             });
 
-            return legendUrl;
+            return url.href;
         },
 
         /**
@@ -166,7 +222,7 @@
          * @return {*}
          * @private
          */
-        _getLayerData: function(source, layer, level) {
+        _getLayerData: function(source, layer, level, position) {
             var layerData = {
                 id:       layer.options.id,
                 title:    layer.options.title,
@@ -181,13 +237,14 @@
                     if (!childLayer.state.visibility) {
                         continue;
                     }
-                    var childLayerData = this._getLayerData(source, childLayer, level + 1);
+                    var childLayerData = this._getLayerData(source, childLayer, level + 1, [i + 1, layer.children.length]);
                     if (childLayerData.legend || childLayerData.children.length) {
                         // display in reverse map order
                         layerData.children.unshift(childLayerData);
                     }
                 }
             }
+
             return layerData;
         },
 
