@@ -42,8 +42,7 @@
             this.mbMap = mbMap;
             this.olMap = this.mbMap.getModel().olMap;
 
-            this.dynamicLegendsMapping = this.options['dynamic-legends']['mapping'];
-            console.log(this.dynamicLegendsMapping);
+            this.dynamicLegendsMapping = this.mbMap.options['dynamic-legends']['mapping'];
 
             this._initLoadScreen();
 
@@ -222,7 +221,7 @@
          * @return {*}
          * @private
          */
-        _getLayerData: function(source, layer, level, position) {
+        _getLayerData: function(source, layer, level) {
             var layerData = {
                 id:       layer.options.id,
                 title:    layer.options.title,
@@ -237,7 +236,7 @@
                     if (!childLayer.state.visibility) {
                         continue;
                     }
-                    var childLayerData = this._getLayerData(source, childLayer, level + 1, [i + 1, layer.children.length]);
+                    var childLayerData = this._getLayerData(source, childLayer, level + 1);
                     if (childLayerData.legend || childLayerData.children.length) {
                         // display in reverse map order
                         layerData.children.unshift(childLayerData);
