@@ -240,6 +240,8 @@ class Map extends Element implements ConfigMigrationInterface
             $configuration["tileSize"] = max(self::MINIMUM_TILE_SIZE, $configuration["tileSize"]);
         }
 
+        $configuration['dynamic-legends'] = $this->getDynamicLegendsMapping();
+
         return $configuration;
     }
 
@@ -386,5 +388,14 @@ class Map extends Element implements ConfigMigrationInterface
         }
         unset($config['layerset']);
         $entity->setConfiguration($config);
+    }
+
+    protected function getDynamicLegendsMapping()
+    {
+        if($this->container->hasParameter('dynamic-legends')) {
+            return $this->container->getParameter('dynamic-legends');
+        }
+
+        return [];
     }
 }
