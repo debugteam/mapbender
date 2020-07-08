@@ -435,7 +435,7 @@
 
                                 var legendUrl = legendLayer.options.legend.url;
 
-                                if(legendUrl.includes("/mapproxy/")){
+                                if(legendUrl && legendUrl.includes("/mapproxy/")){
                                     legendUrl = self._rewriteHostUrl(legendUrl);
                                 }
 
@@ -473,11 +473,10 @@
 
             // Dienst ermitteln
             var mapproxyService = parts.pathname.split('/')[2];
-            var mappedService = this.dynamicLegendsMapping[mapproxyService];
-            if(!mappedService){
+            var mappedLayer = this.dynamicLegendsMapping[mapproxyService][parts['searchObject']['layer']] || undefined;
+            if(!mappedLayer){
                 return url;
             }
-            var mappedLayer = mappedService[parts['searchObject']['layer']];
             parts['pathname'] = mappedLayer.url;
             parts['searchObject']['layer'] = mappedLayer.layerName;
 
