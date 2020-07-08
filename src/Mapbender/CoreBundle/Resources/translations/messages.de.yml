@@ -120,6 +120,7 @@ mb:
       popup:
         btn:
           ok: Schließen
+          refresh: Aktualisieren
       class:
         title: Legende
         description: 'Zeigt die Legende zu den aktiven Themen der Karte an.'
@@ -429,3 +430,4 @@ mb:
 "User account is disabled.": Benutzerkonto ist deaktiviert.
 "User account has expired.": Benutzerkonto ist abgelaufen.
 "User credentials have expired.": Anmeldedaten sind abgelaufen.
+

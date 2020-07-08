@@ -87,12 +87,13 @@
         changesRecognized: false,
 
         recognizeAnyChanges: function(e){
-            if(!this.popupWindow) {
+            this.changesRecognized = true;
+            /**if(!this.popupWindow) {
                 this.changesRecognized = true;
                 return;
             }
 
-            this.onMapLayerChanges(e);
+            this.onMapLayerChanges(e);*/
         },
 
         /**
@@ -474,6 +475,13 @@
                         cssClass: 'button right',
                         callback: function() {
                             self.close();
+                        }
+                    },
+                    {
+                        label:    Mapbender.trans('mb.core.legend.popup.btn.refresh'),
+                        cssClass: 'button left',
+                        callback: function() {
+                            self.onMapLayerChanges();
                         }
                     }
                 ]
