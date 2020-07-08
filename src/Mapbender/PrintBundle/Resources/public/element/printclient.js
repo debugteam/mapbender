@@ -28,6 +28,7 @@
         // for the same template(s) within the same session
         _templateSizeCache: {},
         selectionActive: false,
+        dynamicLegendsMapping: null,
 
         _setup: function(){
             var self = this;
@@ -71,7 +72,10 @@
                 $('.printSubmit', this.$form).remove();
             }
             this.$form.on('submit', this._onSubmit.bind(this));
+
             this._super();
+
+            this.dynamicLegendsMapping = this.map.options['dynamic-legends']['mapping'];
         },
 
         open: function(callback){
@@ -221,8 +225,6 @@
             return this._getPrintBoundsByPrintMeasurements(measurements);
         },
         _getPrintBoundsByPrintMeasurements: function(measurements){
-            console.log("printBounds");
-            console.log(measurements);
             var centerPixel = measurements.centerPixel;
             var pixelHeight = measurements.pixelHeight;
             var pixelWidth = measurements.pixelWidth;
@@ -404,6 +406,7 @@
          * @private
          */
         _collectLegends: function() {
+            var self = this;
             var legends = [];
             var scale = this._getPrintScale();
             var projCode = this.map.model.getCurrentProj()['projCode'];
@@ -429,12 +432,19 @@
                                     // remove all empty values
                                     return !!x;
                                 });
+
+                                var legendUrl = legendLayer.options.legend.url;
+
+                                if(legendUrl.includes("/mapproxy/")){
+                                    legendUrl = self._rewriteHostUrl(legendUrl);
+                                }
+
                                 // @todo: deduplicate same legend urls, picking a reasonably shared (parent / source) title
                                 // NOTE that this can only safely be done server-side, post urlProcessor->getInternalUrl()
                                 //      because sources going through the instance tunnel will always have distinct legend
                                 //      urls per layer, no matter how unique the internal urls are.
                                 var legendInfo = {
-                                    url: legendLayer.options.legend.url,
+                                    url: legendUrl,
                                     layerName: legendLayer.options.title || '',
                                     parentNames: parentNames,
                                     sourceName: sourceName,
@@ -457,6 +467,58 @@
                 }
             }
             return legends;
+        },
+        _rewriteHostUrl: function(url){
+            var parts = this._parseURL(url);
+
+            // Dienst ermitteln
+            var mapproxyService = parts.pathname.split('/')[2];
+            var mappedService = this.dynamicLegendsMapping[mapproxyService];
+            if(!mappedService){
+                return url;
+            }
+            var mappedLayer = mappedService[parts['searchObject']['layer']];
+            parts['pathname'] = mappedLayer.url;
+            parts['searchObject']['layer'] = mappedLayer.layerName;
+
+            return this._buildURL(parts);
+        },
+        _parseURL: function(url) {
+            var parsedUrl = new URL(url);
+
+            var searchObject = {},
+                queries, split, i;
+            // Let the browser do the work
+            queries = decodeURIComponent(parsedUrl.search.replace(/^\?/, '')).split('&');
+            for( i = 0; i < queries.length; i++ ) {
+                split = queries[i].split('=');
+                searchObject[split[0]] = split[1];
+            }
+
+            return {
+                protocol: parsedUrl.protocol,
+                host: parsedUrl.host,
+                hostname: parsedUrl.hostname,
+                port: parsedUrl.port,
+                pathname: parsedUrl.pathname,
+                search: parsedUrl.search,
+                searchObject: searchObject,
+                hash: parsedUrl.hash
+            };
+        },
+        _buildURL: function(parts){
+            var url = parts['protocol'] + '//' + parts['host'] + parts['pathname'];
+
+            return this._appendUrlParameter(url, parts['searchObject']);
+        },
+        _appendUrlParameter: function(legendUrl, params){
+            var url  = new URL(legendUrl);
+
+            $.each(params, function(key, value){
+                url.searchParams.append(key, value);
+            });
+
+            return url.href;
         },
         /**
          * Should return true if the given layer needs to be included in print
