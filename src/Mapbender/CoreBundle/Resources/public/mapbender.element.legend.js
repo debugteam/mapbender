@@ -75,11 +75,10 @@
             }
 
             $(document)
-                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
+                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.onMapLayerChanges, this));
 
             if (this.options.dynamicLegends) {
                 $(document).bind('mbmapzoomchanged', $.proxy(this.recognizeAnyChanges, this));
-                //this.olMap.events.register('movestart', this, $.proxy(this.onMapLayerChanges, this));
                 this.olMap.events.register('moveend', this, $.proxy(this.recognizeAnyChanges, this));
             }
         },
@@ -88,12 +87,6 @@
 
         recognizeAnyChanges: function(e){
             this.changesRecognized = true;
-            /**if(!this.popupWindow) {
-                this.changesRecognized = true;
-                return;
-            }
-
-            this.onMapLayerChanges(e);*/
         },
 
         /**
