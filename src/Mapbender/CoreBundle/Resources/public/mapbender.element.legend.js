@@ -392,7 +392,7 @@
 
             var image = new Image();
             image.onload = function(){
-                if(this.naturalHeight <= 2){
+                if(this.naturalHeight <= 6){
                     $(this).remove();
                 }
 
