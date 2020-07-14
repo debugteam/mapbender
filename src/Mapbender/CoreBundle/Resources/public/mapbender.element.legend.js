@@ -75,7 +75,7 @@
             }
 
             $(document)
-                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.onMapLayerChanges, this));
+                .bind('mbmapsourceadded mbmapsourcechanged mbmapsourcemoved mbmapsourcesreordered', $.proxy(this.recognizeAnyChanges, this));
 
             if (this.options.dynamicLegends) {
                 $(document).bind('mbmapzoomchanged', $.proxy(this.recognizeAnyChanges, this));
@@ -86,7 +86,11 @@
         changesRecognized: false,
 
         recognizeAnyChanges: function(e){
-            this.changesRecognized = true;
+            if(!this.popupWindow) {
+                this.changesRecognized = true;
+                return;
+            }
+            this.onMapLayerChanges(e);
         },
 
         /**
@@ -467,13 +471,6 @@
                         cssClass: 'button right',
                         callback: function() {
                             self.close();
-                        }
-                    },
-                    {
-                        label:    Mapbender.trans('mb.core.legend.popup.btn.refresh'),
-                        cssClass: 'button left',
-                        callback: function() {
-                            self.onMapLayerChanges();
                         }
                     }
                 ]
