@@ -139,14 +139,17 @@ class LegendHandler
                 $url = $data;
                 $title = $key;
             }
-            $dynamicLegends = ArrayUtil::getDefault($printJobData, 'dynamicLegends', false);
-            if($dynamicLegends){
-                $dynamicLegendParams = $this->prepareDynamicUrlParams($printJobData, $data['dynamicParams']);
-                $url = $this->createDynamicLegendUrl($url, $dynamicLegendParams);
-            }
-            $block = $this->prepareUrlBlock($title, $url);
-            if ($block && $block->getHeight() > 2) {
-                $group->addBlock($block);
+
+            foreach ($data['additionalUrls'] as $oneUrl) {
+                $dynamicLegends = ArrayUtil::getDefault($printJobData, 'dynamicLegends', false);
+                if ($dynamicLegends) {
+                    $dynamicLegendParams = $this->prepareDynamicUrlParams($printJobData, $data['dynamicParams']);
+                    $oneUrl = $this->createDynamicLegendUrl($oneUrl, $dynamicLegendParams);
+                }
+                $block = $this->prepareUrlBlock($title, $oneUrl);
+                if ($block && $block->getHeight() > 6) {
+                    $group->addBlock($block);
+                }
             }
         };
         return $group;

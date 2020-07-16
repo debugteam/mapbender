@@ -433,10 +433,13 @@
                                     return !!x;
                                 });
 
-                                var legendUrl = legendLayer.options.legend.url;
+                                var layerLegendUrl = legendLayer.options.legend.url;
+                                var legendUrls;
 
-                                if(legendUrl && legendUrl.includes("/mapproxy/")){
-                                    legendUrl = self._rewriteHostUrl(legendUrl);
+                                if (layerLegendUrl && layerLegendUrl.includes("/mapproxy/")) {
+                                    legendUrls = self._rewriteHostUrl(layerLegendUrl);
+                                } else if(layerLegendUrl){
+                                    legendUrls = [layerLegendUrl];
                                 }
 
                                 // @todo: deduplicate same legend urls, picking a reasonably shared (parent / source) title
@@ -444,10 +447,11 @@
                                 //      because sources going through the instance tunnel will always have distinct legend
                                 //      urls per layer, no matter how unique the internal urls are.
                                 var legendInfo = {
-                                    url: legendUrl,
+                                    url: legendUrls[0],
                                     layerName: legendLayer.options.title || '',
                                     parentNames: parentNames,
                                     sourceName: sourceName,
+                                    additionalUrls: legendUrls,
                                     dynamicParams: {
                                         sourceSrs: projCode,
                                         printExtent: extentAndMeasurements.printBounds,
@@ -469,6 +473,7 @@
             return legends;
         },
         _rewriteHostUrl: function(url){
+            var legendUrls = [];
             var parts = this._parseURL(url);
 
             // Dienst ermitteln
@@ -478,9 +483,15 @@
                 return url;
             }
             parts['pathname'] = mappedLayer.url;
-            parts['searchObject']['layer'] = mappedLayer.layerName;
+            for (var i = 0; i < mappedLayer.layerNames.length; ++i) {
+                var oneLayerName = mappedLayer.layerNames[i];
 
-            return this._buildURL(parts);
+                parts['searchObject']['layer'] = oneLayerName;
+
+                legendUrls.push(this._buildURL(parts));
+            }
+
+            return legendUrls;
         },
         _parseURL: function(url) {
             var parsedUrl = new URL(url);
