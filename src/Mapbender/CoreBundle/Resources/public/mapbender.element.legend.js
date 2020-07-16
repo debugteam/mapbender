@@ -128,22 +128,29 @@
          */
         getLegendUrl: function(layer) {
             if (layer.options.legend) {
-                var legendUrl = layer.options.legend.url;
+                var layerLegendUrl = layer.options.legend.url;
+                var legendUrls;
 
-                if(legendUrl && legendUrl.includes("/mapproxy/")){
-                    legendUrl = this._rewriteHostUrl(legendUrl);
+                if (layerLegendUrl && layerLegendUrl.includes("/mapproxy/")) {
+                    legendUrls = this._rewriteHostUrl(layerLegendUrl);
+                } else if(layerLegendUrl){
+                    legendUrls = [layerLegendUrl];
                 }
 
-                if (this.options.dynamicLegends){
-                    legendUrl = this._appendDynamicLegendUrlParameter(legendUrl, this._prepareDynamicLegendParameter());
-                }
+                if (this.options.dynamicLegends) {
+                    for (var i = 0; i < legendUrls.length; ++i) {
+                        var url = legendUrls[i];
 
-                return legendUrl || null;
+                        legendUrls[i] = this._appendDynamicLegendUrlParameter(url, this._prepareDynamicLegendParameter());
+                    }
+                }
+                return legendUrls || null;
             }
             return null;
         },
 
         _rewriteHostUrl: function(url){
+            var legendUrls = [];
             var parts = this._parseURL(url);
 
             // Dienst ermitteln
@@ -153,9 +160,17 @@
                 return url;
             }
             parts['pathname'] = mappedLayer.url;
-            parts['searchObject']['layer'] = mappedLayer.layerName;
+            for (var i = 0; i < mappedLayer.layerNames.length; ++i) {
+                var oneLayerName = mappedLayer.layerNames[i];
 
-            return this._buildURL(parts);
+                parts['searchObject']['layer'] = oneLayerName;
+
+                legendUrls.push(this._buildURL(parts));
+            }
+
+
+
+            return legendUrls;
         },
 
         _parseURL: function(url) {
@@ -328,7 +343,11 @@
                         nodeHtmlListElement.append(widget._createListElement().append(widget._createLabel(childSource.title, 'legend-layerTitle')));
                     }
 
-                    nodeHtmlListElement.append(widget._createListElement().append(widget._createImage(childSource.legend)));
+                    for (var i = 0; i < childSource.legend.length; ++i) {
+                        var legendUrl = childSource.legend[i];
+
+                        nodeHtmlListElement.append(widget._createListElement().append(widget._createImage(legendUrl)));
+                    }
                 }
                 nodeHtml.append(nodeHtmlListElement);
             });
