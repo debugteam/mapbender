@@ -168,8 +168,6 @@
                 legendUrls.push(this._buildURL(parts));
             }
 
-
-
             return legendUrls;
         },
 
