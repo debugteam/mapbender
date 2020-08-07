@@ -436,7 +436,7 @@
                                 var layerLegendUrl = legendLayer.options.legend.url;
                                 var legendUrls = [];
 
-                                if(!this.validURL(layerLegendUrl)){
+                                if(!self.validURL(layerLegendUrl)){
                                     layerLegendUrl = null;
                                 }
 
