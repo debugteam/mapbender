@@ -161,7 +161,8 @@
             var mapproxyService = parts.pathname.split('/')[2];
             var mappedLayer = this.dynamicLegendsMapping[mapproxyService][parts['searchObject']['layer']] || undefined;
             if(!mappedLayer){
-                return url;
+                legendUrls.push(url);
+                return legendUrls;
             }
             parts['pathname'] = mappedLayer.url;
             for (var i = 0; i < mappedLayer.layerNames.length; ++i) {
