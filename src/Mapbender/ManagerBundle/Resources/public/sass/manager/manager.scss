@@ -423,3 +423,29 @@ label[for^="inputFilter"] {
   }
   @include border-bottom-radius($radius);
 }
+
+.popupContent .inputWrapper, .labelInput {
+    &.dbWfs {
+        margin: 5px 4px 5px 0;
+    }
+    &.dbWfs--col5 {
+        min-width: 5%;
+        max-width: 5%;
+    }
+    &.dbWfs--col10 {
+        min-width: 10%;
+        max-width: 10%;
+    }
+    &.dbWfs--col20 {
+        min-width: 20%;
+        max-width: 20%;
+    }
+    &.dbWfs--col30 {
+        min-width: 30%;
+        max-width: 30%;
+    }
+    &.dbWfs--col40 {
+        min-width: 40%;
+        max-width: 40%;
+    }
+}
