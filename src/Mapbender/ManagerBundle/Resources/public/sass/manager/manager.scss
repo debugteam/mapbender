@@ -424,9 +424,14 @@ label[for^="inputFilter"] {
   @include border-bottom-radius($radius);
 }
 
+.collectionItem .collectionRemove {
+    top: 0px;
+}
+
 .popupContent .inputWrapper, .labelInput {
     &.dbWfs {
         margin: 5px 4px 5px 0;
+        text-align: center;
     }
     &.dbWfs--col5 {
         min-width: 5%;
