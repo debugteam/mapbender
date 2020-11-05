@@ -18,6 +18,9 @@
   .dropdown {
     min-width: 70%;
   }
+    .dbWfs--dropdown{
+        min-width: 15%;
+    }
   .inputWrapper, select, .choiceExpandedSortable, .collectionContainer {
     width: 70%;
     color: $secondColor;

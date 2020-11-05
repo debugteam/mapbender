@@ -429,6 +429,10 @@ label[for^="inputFilter"] {
 }
 
 .popupContent .inputWrapper, .labelInput {
+    &.dbWfs--dropdown{
+        //reset Width of general dropdownmenues
+        min-widht: 0% !important;
+    }
     &.dbWfs {
         margin: 5px 4px 5px 0;
         text-align: center;
@@ -440,6 +444,10 @@ label[for^="inputFilter"] {
     &.dbWfs--col10 {
         min-width: 10%;
         max-width: 10%;
+    }
+    &.dbWfs--col15 {
+        min-width: 15%;
+        max-width: 15%;
     }
     &.dbWfs--col20 {
         min-width: 20%;
